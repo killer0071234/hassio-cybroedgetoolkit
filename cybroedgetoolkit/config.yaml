@@ -1,5 +1,7 @@
+---
+# https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
 name: Cybro Edge Toolkit
-version: "1.0.0"
+version: "dev"
 slug: cybroedgetoolkit
 description: Cybrotech Cybro Edge Toolkit (SCGI server, MQTT client, data logger) for Cybro PLCs
 url: https://github.com/killer0071234/hassio-cybroedgetoolkit/tree/main/cybroedgetoolkit

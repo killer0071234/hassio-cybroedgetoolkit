@@ -24,11 +24,12 @@ See the [app documentation](cybroedgetoolkit/DOCS.md) for configuration.
 
 ## Updating the toolkit
 
-The toolkit is downloaded from Cybrotech when the image is built. To update it,
-change `CET_URL` and `CET_SHA256` in
-[cybroedgetoolkit/build.yaml](cybroedgetoolkit/build.yaml) (and the defaults in
-the Dockerfile), then bump the app version in
-[cybroedgetoolkit/config.yaml](cybroedgetoolkit/config.yaml).
+The toolkit is downloaded from Cybrotech when the image is built. See the
+[contributing guide](.github/CONTRIBUTING.md#update-the-cybro-edge-toolkit) on
+how to update it.
+
+To start and debug the app during development, see the
+[contributing guide](.github/CONTRIBUTING.md#development).
 
 ![Supports aarch64 Architecture][aarch64-shield]
 ![Supports amd64 Architecture][amd64-shield]

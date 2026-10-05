@@ -1,34 +1,76 @@
+# https://developers.home-assistant.io/docs/add-ons/configuration#add-on-dockerfile
 ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base-python:3.12-alpine3.22
+# hadolint ignore=DL3006
 FROM ${BUILD_FROM}
 
+ARG BUILD_ARCH=amd64
+
+# Cybro Edge Toolkit download, update both values for a new toolkit version
 ARG CET_URL=https://cybrotech.com/wp-content/uploads/CybroEdgeToolkit.zip
 ARG CET_SHA256=f3bc060b16d614b2a73a91361666edb3f1e0b908f92ae7ce67fc6b1e376d16b7
 
 ENV CET_HOME=/opt/cybrotech
 
+# Set shell
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Download the Cybro Edge Toolkit and install its Python dependencies.
 # WMI is Windows-only and therefore skipped.
-RUN set -eux; \
+# hadolint ignore=DL3018,DL3042
+RUN \
     apk add --no-cache --virtual .build-deps \
         build-base \
-        linux-headers; \
-    mkdir -p "${CET_HOME}" /tmp/cet; \
-    curl -fsSL -o /tmp/cet.zip "${CET_URL}"; \
-    echo "${CET_SHA256}  /tmp/cet.zip" | sha256sum -c -; \
-    unzip -q /tmp/cet.zip -d /tmp/cet; \
-    mv /tmp/cet/app "${CET_HOME}/app"; \
-    mv /tmp/cet/History.txt "${CET_HOME}/"; \
-    grep -viE '^\s*wmi\b' "${CET_HOME}/app/requirements.txt" > /tmp/requirements.txt; \
-    pip install --no-cache-dir -r /tmp/requirements.txt; \
-    mkdir -p "${CET_HOME}/defaults"; \
-    mv "${CET_HOME}/app/config.ini" "${CET_HOME}/app/data_logger.xml" "${CET_HOME}/defaults/"; \
-    ln -s /config/config.ini "${CET_HOME}/app/config.ini"; \
-    ln -s /config/data_logger.xml "${CET_HOME}/app/data_logger.xml"; \
-    ln -s /data/log "${CET_HOME}/app/log"; \
-    ln -s /data/alc "${CET_HOME}/app/alc"; \
-    apk del --no-network .build-deps; \
-    rm -rf /tmp/cet /tmp/cet.zip /tmp/requirements.txt
+        linux-headers \
+    \
+    && mkdir -p "${CET_HOME}" /tmp/cet \
+    && curl -fsSL -o /tmp/cet.zip "${CET_URL}" \
+    && echo "${CET_SHA256}  /tmp/cet.zip" | sha256sum -c - \
+    && unzip -q /tmp/cet.zip -d /tmp/cet \
+    && mv /tmp/cet/app "${CET_HOME}/app" \
+    && mv /tmp/cet/History.txt "${CET_HOME}/" \
+    && grep -viE '^\s*wmi\b' "${CET_HOME}/app/requirements.txt" > /tmp/requirements.txt \
+    && pip install --no-cache-dir -r /tmp/requirements.txt \
+    \
+    && mkdir -p "${CET_HOME}/defaults" \
+    && mv "${CET_HOME}/app/config.ini" "${CET_HOME}/app/data_logger.xml" "${CET_HOME}/defaults/" \
+    && ln -s /config/config.ini "${CET_HOME}/app/config.ini" \
+    && ln -s /config/data_logger.xml "${CET_HOME}/app/data_logger.xml" \
+    && ln -s /data/log "${CET_HOME}/app/log" \
+    && ln -s /data/alc "${CET_HOME}/app/alc" \
+    \
+    && apk del --no-network .build-deps \
+    && rm -rf /tmp/cet /tmp/cet.zip /tmp/requirements.txt
 
+# Copy root filesystem
 COPY rootfs /
 
 WORKDIR ${CET_HOME}/app
+
+# Build arguments
+ARG BUILD_ARCH
+ARG BUILD_DATE
+ARG BUILD_DESCRIPTION
+ARG BUILD_NAME
+ARG BUILD_REF
+ARG BUILD_REPOSITORY
+ARG BUILD_VERSION
+
+# Labels
+LABEL \
+    io.hass.name="${BUILD_NAME}" \
+    io.hass.description="${BUILD_DESCRIPTION}" \
+    io.hass.arch="${BUILD_ARCH}" \
+    io.hass.type="app" \
+    io.hass.version=${BUILD_VERSION} \
+    maintainer="Daniel Gangl <killer007@gmx.at>" \
+    org.opencontainers.image.title="${BUILD_NAME}" \
+    org.opencontainers.image.description="${BUILD_DESCRIPTION}" \
+    org.opencontainers.image.vendor="Home Assistant Daniel's Apps" \
+    org.opencontainers.image.authors="Daniel Gangl <killer007@gmx.at>" \
+    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.url="https://addons.community" \
+    org.opencontainers.image.source="https://github.com/${BUILD_REPOSITORY}" \
+    org.opencontainers.image.documentation="https://github.com/${BUILD_REPOSITORY}/blob/main/README.md" \
+    org.opencontainers.image.created=${BUILD_DATE} \
+    org.opencontainers.image.revision=${BUILD_REF} \
+    org.opencontainers.image.version=${BUILD_VERSION}

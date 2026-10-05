@@ -1,6 +1,4 @@
+---
 build_from:
   aarch64: ghcr.io/home-assistant/aarch64-base-python:3.12-alpine3.22
   amd64: ghcr.io/home-assistant/amd64-base-python:3.12-alpine3.22
-args:
-  CET_URL: https://cybrotech.com/wp-content/uploads/CybroEdgeToolkit.zip
-  CET_SHA256: f3bc060b16d614b2a73a91361666edb3f1e0b908f92ae7ce67fc6b1e376d16b7
