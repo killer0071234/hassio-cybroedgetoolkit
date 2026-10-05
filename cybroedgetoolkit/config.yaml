@@ -10,7 +10,6 @@ arch:
   - amd64
 init: false
 startup: services
-boot: auto
 # Host networking is required for controller autodetection (UDP broadcast)
 # and for receiving push messages sent by the controllers.
 host_network: true
