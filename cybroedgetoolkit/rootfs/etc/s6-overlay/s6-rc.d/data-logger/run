@@ -1,0 +1,14 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Start the Cybro Edge Toolkit data logger
+# ==============================================================================
+if bashio::config.false 'data_logger'; then
+    bashio::log.info "data logger is disabled"
+    s6-svc -O .
+    exit 0
+fi
+
+bashio::log.info "Starting data logger..."
+cd "${CET_HOME}/app" || bashio::exit.nok
+exec python3 "${CET_HOME}/app/data_logger/start.py"

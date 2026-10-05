@@ -1,0 +1,14 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Start the Cybro Edge Toolkit MQTT client
+# ==============================================================================
+if bashio::config.false 'mqtt_client'; then
+    bashio::log.info "MQTT client is disabled"
+    s6-svc -O .
+    exit 0
+fi
+
+bashio::log.info "Starting MQTT client..."
+cd "${CET_HOME}/app" || bashio::exit.nok
+exec python3 "${CET_HOME}/app/mqtt_client/start.py"

@@ -1,0 +1,14 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Start the Cybro Edge Toolkit SCGI server
+# ==============================================================================
+if bashio::config.false 'scgi_server'; then
+    bashio::log.info "SCGI server is disabled"
+    s6-svc -O .
+    exit 0
+fi
+
+bashio::log.info "Starting SCGI server..."
+cd "${CET_HOME}/app" || bashio::exit.nok
+exec python3 "${CET_HOME}/app/scgi_server/start.py"

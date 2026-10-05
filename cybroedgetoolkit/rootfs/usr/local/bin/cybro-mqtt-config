@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+"""Set broker settings in the [MQTT] section of a Cybro Edge Toolkit config.ini.
+
+The file contains repeated sections ([PUBLISH], [SUBSCRIBE]), so configparser
+can't be used. Lines are edited in place to keep comments and layout intact.
+Values are taken from the MQTT_IP, MQTT_PORT, MQTT_USERNAME and MQTT_PASSWORD
+environment variables.
+"""
+import os
+import re
+import sys
+from pathlib import Path
+
+SECTION = "MQTT"
+KEYS = ("ip", "port", "username", "password")
+
+SECTION_RE = re.compile(r"^[ \t]*\[([^\]]+)\]")
+KEY_RE = re.compile(r"^([ \t]*)([A-Za-z_]+)[ \t]*=")
+
+
+def update(lines: list[str], values: dict[str, str]) -> list[str]:
+    result = []
+    in_section = False
+    found_section = False
+    missing = set(values)
+
+    def flush_missing():
+        for key in KEYS:
+            if key in missing:
+                result.append(f"{key} = {values[key]}\n")
+        missing.clear()
+
+    for line in lines:
+        section = SECTION_RE.match(line)
+        if section:
+            if in_section:
+                flush_missing()
+            in_section = section.group(1).strip().upper() == SECTION
+            found_section |= in_section
+            result.append(line)
+            continue
+
+        key = KEY_RE.match(line)
+        if in_section and key and key.group(2).lower() in values:
+            name = key.group(2).lower()
+            result.append(f"{key.group(1)}{key.group(2)} = {values[name]}\n")
+            missing.discard(name)
+            continue
+
+        result.append(line)
+
+    if in_section:
+        flush_missing()
+    elif not found_section:
+        if result and not result[-1].endswith("\n"):
+            result[-1] += "\n"
+        result.append(f"\n[{SECTION}]\n")
+        flush_missing()
+
+    return result
+
+
+def main() -> int:
+    path = Path(sys.argv[1])
+    values = {key: os.environ.get(f"MQTT_{key.upper()}", "") for key in KEYS}
+
+    original = path.read_text(encoding="utf-8", errors="surrogateescape")
+    updated = "".join(update(original.splitlines(keepends=True), values))
+
+    # Only write on change, the toolkit restarts itself when config.ini changes
+    if updated != original:
+        path.write_text(updated, encoding="utf-8", errors="surrogateescape")
+        print(f"Updated [{SECTION}] broker settings in {path}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

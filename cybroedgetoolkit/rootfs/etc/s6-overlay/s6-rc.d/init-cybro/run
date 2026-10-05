@@ -1,0 +1,36 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Prepare configuration and data directories for the Cybro Edge Toolkit
+# ==============================================================================
+
+# Persistent locations for the log and allocation (alc) cache directories
+mkdir -p /data/log /data/alc
+
+# Provide default configuration files on first start
+for file in config.ini data_logger.xml; do
+    if ! bashio::fs.file_exists "/config/${file}"; then
+        bashio::log.info "Creating default /config/${file}"
+        cp "${CET_HOME}/defaults/${file}" "/config/${file}"
+    fi
+done
+
+# Point the MQTT client at the Home Assistant MQTT broker
+if bashio::config.true 'mqtt_client' && bashio::config.true 'mqtt_auto_config'; then
+    if bashio::services.available 'mqtt'; then
+        host=$(bashio::services 'mqtt' 'host')
+        # This app runs on the host network, where the internal hostname of
+        # the broker app may not resolve. Its port is published on the host.
+        if ! getent hosts "${host}" > /dev/null 2>&1; then
+            bashio::log.info "MQTT host '${host}' not resolvable, using 127.0.0.1"
+            host=127.0.0.1
+        fi
+        MQTT_IP="${host}" \
+        MQTT_PORT="$(bashio::services 'mqtt' 'port')" \
+        MQTT_USERNAME="$(bashio::services 'mqtt' 'username')" \
+        MQTT_PASSWORD="$(bashio::services 'mqtt' 'password')" \
+            python3 /usr/local/bin/cybro-mqtt-config /config/config.ini
+    else
+        bashio::log.warning "No MQTT service available, using [MQTT] settings from config.ini"
+    fi
+fi
