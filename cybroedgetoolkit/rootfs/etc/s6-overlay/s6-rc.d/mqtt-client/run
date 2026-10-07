@@ -9,6 +9,12 @@ if bashio::config.false 'mqtt_client'; then
     exit 0
 fi
 
+# The SCGI server dependency only guarantees its process was started,
+# wait until it actually accepts connections before connecting to it
+if bashio::config.true 'scgi_server'; then
+    bashio::net.wait_for 4000
+fi
+
 bashio::log.info "Starting MQTT client..."
 cd "${CET_HOME}/app" || bashio::exit.nok
 exec python3 "${CET_HOME}/app/mqtt_client/start.py"
