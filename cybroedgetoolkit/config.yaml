@@ -14,8 +14,8 @@ startup: services
 # and for receiving push messages sent by the controllers.
 host_network: true
 ports:
-  4000/tcp: null
-  8442/udp: null
+  4000/tcp: 4000
+  8442/udp: 8442
 ports_description:
   4000/tcp: SCGI server (used by MQTT client, data logger and 3rd party clients)
   8442/udp: Cybro controller communication (A-bus over UDP)
