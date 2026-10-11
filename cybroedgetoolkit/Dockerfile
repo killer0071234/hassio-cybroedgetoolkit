@@ -7,7 +7,7 @@ ARG BUILD_ARCH=amd64
 
 # Cybro Edge Toolkit download, update both values for a new toolkit version
 ARG CET_URL=https://cybrotech.com/wp-content/uploads/CybroEdgeToolkit.zip
-ARG CET_SHA256=f3bc060b16d614b2a73a91361666edb3f1e0b908f92ae7ce67fc6b1e376d16b7
+ARG CET_SHA256=7aa7efc99392033ca9e5e69cc6fb9cf07aa279f91176be3fb1eb758d4ecf22b5
 
 ENV CET_HOME=/opt/cybrotech
 
